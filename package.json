@@ -1,0 +1,56 @@
+{
+  "name": "knowing-mcp",
+  "version": "1.0.0",
+  "description": "Workspace-aware MCP server for GitHub operations and AI assistance - works in any VS Code project",
+  "type": "module",
+  "main": "src/server.mjs",
+  "bin": {
+    "knowing-mcp": "./src/server.mjs"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "dev": "node --watch src/server.mjs",
+    "test": "node test/test-connection.mjs",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "github",
+    "workspace",
+    "copilot",
+    "openai",
+    "vscode",
+    "automation"
+  ],
+  "author": "Gullers Grupp",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gullers-Grupp/knowing-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Gullers-Grupp/knowing-mcp/issues"
+  },
+  "homepage": "https://github.com/Gullers-Grupp/knowing-mcp#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.2",
+    "@octokit/rest": "^20.0.0",
+    "dotenv": "^17.2.3",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.104.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {},
+  "files": [
+    "src/",
+    "test/",
+    "README.md",
+    "QUICK-START.md",
+    "VSCODE-SETUP.md",
+    "LICENSE"
+  ]
+}
