@@ -7,46 +7,50 @@ import {
     ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Octokit } from "@octokit/rest";
-import dotenv from "dotenv";
-import fetch from "node-fetch";
-import OpenAI from "openai";
 import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import fetch from "node-fetch";
+import OpenAI from "openai";
+import { join } from 'path';
+import { closeBrowser } from './browser-manager.mjs';
+import { PLAYWRIGHT_TOOLS, handlePlaywrightTool } from './playwright-tools.mjs';
 
-// Load global environment variables (fallback if VS Code secrets not available)
-dotenv.config({ path: join(process.env.HOME || process.env.USERPROFILE, '.knowing-mcp.env') });
+// Initialize clients lazily to allow environment variables to be set by VS Code
+let octokit = null;
+let openai = null;
+
+function initializeClients() {
+  if (!octokit) {
+    const GH_TOKEN = getEnv("GH_TOKEN");
+    octokit = new Octokit({ auth: GH_TOKEN });
+  }
+  
+  if (!openai) {
+    const OPENAI_API_KEY = getEnv("AZURE_OPENAI_API_KEY");
+    const OPENAI_ENDPOINT = getEnv("AZURE_OPENAI_ENDPOINT");
+    openai = new OpenAI({
+      apiKey: OPENAI_API_KEY,
+      baseURL: `${OPENAI_ENDPOINT.replace(/\/$/, '')}/openai/deployments`,
+      defaultQuery: { 'api-version': '2024-12-01-preview' }, // Updated for o3 support
+      defaultHeaders: { 'api-key': OPENAI_API_KEY }
+    });
+  }
+}
 
 /**
- * Get environment variable with fallback chain:
- * 1. Process environment (from VS Code)
- * 2. Global config file (~/.knowing-mcp.env)
- * 3. Throw error if required
+ * Get environment variable from VS Code settings
+ * Variables are passed via github.copilot.chat.mcpServers env configuration
  */
 function getEnv(name, required = true) {
   const value = process.env[name];
   if (!value && required) {
     throw new Error(
       `Missing environment variable: ${name}\n` +
-      `Please set it in VS Code User Settings (github.copilot.chat.mcpServers env) or in ~/.knowing-mcp.env`
+      `Please set it in VS Code User Settings: github.copilot.chat.mcpServers.knowing-mcp.env.${name}`
     );
   }
   return value;
 }
-
-const GH_TOKEN = getEnv("GH_TOKEN");
-const OPENAI_API_KEY = getEnv("AZURE_OPENAI_API_KEY");
-const OPENAI_ENDPOINT = getEnv("AZURE_OPENAI_ENDPOINT");
-const GPT5_DEPLOYMENT = process.env.AZURE_OPENAI_GPT5_DEPLOYMENT || "gpt-5";
-
-const octokit = new Octokit({ auth: GH_TOKEN });
-const openai = new OpenAI({
-  apiKey: OPENAI_API_KEY,
-  baseURL: `${OPENAI_ENDPOINT.replace(/\/$/, '')}/openai/deployments`,
-  defaultQuery: { 'api-version': '2024-12-01-preview' },
-  defaultHeaders: { 'api-key': OPENAI_API_KEY }
-});
 
 /**
  * Detect GitHub repository from workspace git remote
@@ -127,16 +131,16 @@ const server = new Server(
   }
 );
 
-// Define the tools (owner/repo now optional - auto-detected from workspace)
+// Define the tools (owner/repo are required to ensure smooth operation)
 const TOOLS = [
   {
     name: "issue-create",
-    description: "Create an issue in a GitHub repository. If owner/repo not provided, uses current workspace's repository.",
+    description: "Create an issue in a GitHub repository.",
     inputSchema: {
       type: "object",
       properties: {
-        owner: { type: "string", description: "Repository owner (optional if workspace has git remote)" },
-        repo: { type: "string", description: "Repository name (optional if workspace has git remote)" },
+        owner: { type: "string", description: "Repository owner" },
+        repo: { type: "string", description: "Repository name" },
         title: { type: "string", description: "Issue title" },
         body: { type: "string", description: "Issue body content" },
         labels: { 
@@ -145,45 +149,45 @@ const TOOLS = [
           description: "Labels to add to the issue"
         }
       },
-      required: ["title"]
+      required: ["owner", "repo", "title"]
     }
   },
   {
     name: "issue-close",
-    description: "Close an issue in a GitHub repository. If owner/repo not provided, uses current workspace's repository.",
+    description: "Close an issue in a GitHub repository.",
     inputSchema: {
       type: "object",
       properties: {
-        owner: { type: "string", description: "Repository owner (optional if workspace has git remote)" },
-        repo: { type: "string", description: "Repository name (optional if workspace has git remote)" },
+        owner: { type: "string", description: "Repository owner" },
+        repo: { type: "string", description: "Repository name" },
         issue_number: { type: "number", description: "Issue number to close" },
         comment: { type: "string", description: "Optional comment when closing the issue" }
       },
-      required: ["issue_number"]
+      required: ["owner", "repo", "issue_number"]
     }
   },
   {
     name: "issue-comment",
-    description: "Add a comment to an existing GitHub issue. If owner/repo not provided, uses current workspace's repository.",
+    description: "Add a comment to an existing GitHub issue.",
     inputSchema: {
       type: "object",
       properties: {
-        owner: { type: "string", description: "Repository owner (optional if workspace has git remote)" },
-        repo: { type: "string", description: "Repository name (optional if workspace has git remote)" },
+        owner: { type: "string", description: "Repository owner" },
+        repo: { type: "string", description: "Repository name" },
         issue_number: { type: "number", description: "Issue number to comment on" },
         body: { type: "string", description: "Comment body content" }
       },
-      required: ["issue_number", "body"]
+      required: ["owner", "repo", "issue_number", "body"]
     }
   },
   {
     name: "issue-update",
-    description: "Update an existing GitHub issue (title, body, labels, state). If owner/repo not provided, uses current workspace's repository.",
+    description: "Update an existing GitHub issue (title, body, labels, state).",
     inputSchema: {
       type: "object",
       properties: {
-        owner: { type: "string", description: "Repository owner (optional if workspace has git remote)" },
-        repo: { type: "string", description: "Repository name (optional if workspace has git remote)" },
+        owner: { type: "string", description: "Repository owner" },
+        repo: { type: "string", description: "Repository name" },
         issue_number: { type: "number", description: "Issue number to update" },
         title: { type: "string", description: "New issue title" },
         body: { type: "string", description: "New issue body content" },
@@ -194,34 +198,34 @@ const TOOLS = [
           description: "Labels to set on the issue"
         }
       },
-      required: ["issue_number"]
+      required: ["owner", "repo", "issue_number"]
     }
   },
   {
     name: "issue-get",
-    description: "Get details of a specific GitHub issue. If owner/repo not provided, uses current workspace's repository.",
+    description: "Get details of a specific GitHub issue.",
     inputSchema: {
       type: "object",
       properties: {
-        owner: { type: "string", description: "Repository owner (optional if workspace has git remote)" },
-        repo: { type: "string", description: "Repository name (optional if workspace has git remote)" },
+        owner: { type: "string", description: "Repository owner" },
+        repo: { type: "string", description: "Repository name" },
         issue_number: { type: "number", description: "Issue number to retrieve" }
       },
-      required: ["issue_number"]
+      required: ["owner", "repo", "issue_number"]
     }
   },
   {
     name: "issue-list",
-    description: "List issues in a GitHub repository. If owner/repo not provided, uses current workspace's repository.",
+    description: "List issues in a GitHub repository.",
     inputSchema: {
       type: "object",
       properties: {
-        owner: { type: "string", description: "Repository owner (optional if workspace has git remote)" },
-        repo: { type: "string", description: "Repository name (optional if workspace has git remote)" },
+        owner: { type: "string", description: "Repository owner" },
+        repo: { type: "string", description: "Repository name" },
         state: { type: "string", description: "Issue state: open, closed, or all", "enum": ["open", "closed", "all"] },
         limit: { type: "number", description: "Maximum number of issues to return (default: 20)" }
       },
-      required: []
+      required: ["owner", "repo"]
     }
   },
   {
@@ -286,18 +290,24 @@ const TOOLS = [
   },
   {
     name: "ask-architect",
-    description: "Answer architecture questions using the workspace's architecture document (.vscode/docs/ARCHITECTURE.md). Can propose updates when gaps are found. Automatically uses current workspace.",
+    description: "Answer architecture questions using a workspace's architecture document (.vscode/docs/ARCHITECTURE.md). Can propose updates when gaps are found.",
     inputSchema: {
       type: "object",
       properties: {
         question: { 
           type: "string", 
           description: "Architecture question to answer"
+        },
+        workspacePath: {
+          type: "string",
+          description: "Absolute path to the workspace directory (e.g., /Users/username/Github/my-project)"
         }
       },
-      required: ["question"]
+      required: ["question", "workspacePath"]
     }
-  }
+  },
+  // Add Playwright browser automation tools
+  ...PLAYWRIGHT_TOOLS
 ];
 
 // Handle list tools request
@@ -311,30 +321,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
   
-  // Get workspace path from environment (set by VS Code)
+  // Get workspace path from environment (needed for ask-architect tool)
   const workspacePath = process.env.WORKSPACE_ROOT || process.cwd();
-  
-  // Helper to get repo info (from args or workspace)
-  const getRepoInfo = () => {
-    if (args.owner && args.repo) {
-      return { owner: args.owner, repo: args.repo };
-    }
-    
-    const detected = getWorkspaceRepo(workspacePath);
-    if (!detected) {
-      throw new Error(
-        'Could not determine GitHub repository. Either:\n' +
-        '1. Provide owner and repo parameters, or\n' +
-        '2. Run this in a workspace with a GitHub remote configured'
-      );
-    }
-    return detected;
-  };
 
   try {
+    // Initialize clients with environment variables from VS Code
+    initializeClients();
+    
+    // Handle Playwright browser automation tools
+    if (name.startsWith('browser-')) {
+      return await handlePlaywrightTool(name, args);
+    }
+    
     switch (name) {
       case "issue-create": {
-        const { owner, repo } = getRepoInfo();
+        const { owner, repo } = args;
         const { title, body = "", labels = [] } = args;
         const { data } = await octokit.issues.create({ 
           owner, 
@@ -354,8 +355,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "issue-close": {
-        const { owner, repo } = getRepoInfo();
-        const { issue_number, comment } = args;
+        const { owner, repo, issue_number, comment } = args;
         
         // Add comment if provided
         if (comment) {
@@ -386,8 +386,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "issue-comment": {
-        const { owner, repo } = getRepoInfo();
-        const { issue_number, body } = args;
+        const { owner, repo, issue_number, body } = args;
         const { data } = await octokit.issues.createComment({
           owner,
           repo,
@@ -406,8 +405,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "issue-update": {
-        const { owner, repo } = getRepoInfo();
-        const { issue_number, title, body, state, labels } = args;
+        const { owner, repo, issue_number, title, body, state, labels } = args;
         
         // Build update object with only provided fields
         const updateData = { owner, repo, issue_number };
@@ -429,8 +427,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "issue-get": {
-        const { owner, repo } = getRepoInfo();
-        const { issue_number } = args;
+        const { owner, repo, issue_number } = args;
         const { data } = await octokit.issues.get({
           owner,
           repo,
@@ -459,8 +456,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "issue-list": {
-        const { owner, repo } = getRepoInfo();
-        const { state = "open", limit = 20 } = args;
+        const { owner, repo, state = "open", limit = 20 } = args;
         const { data } = await octokit.issues.listForRepo({
           owner,
           repo,
@@ -562,6 +558,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "ask-expert": {
         const { question, context = "", reasoning_effort = "medium" } = args;
         
+        // Get environment variables
+        const OPENAI_API_KEY = getEnv("AZURE_OPENAI_API_KEY");
+        const OPENAI_ENDPOINT = getEnv("AZURE_OPENAI_ENDPOINT");
+        const GPT5_DEPLOYMENT = process.env.AZURE_OPENAI_GPT5_DEPLOYMENT || "gpt-5";
+        
         // Construct the prompt with context
         const fullPrompt = context 
           ? `${question}\n\nContext:\n${context}`
@@ -615,18 +616,40 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "ask-architect": {
-        const { question } = args;
+        const { question, workspacePath: customWorkspacePath } = args;
         
-        // Use workspace path for architecture document
-        const archDocPath = join(workspacePath, '.vscode/docs/ARCHITECTURE.md');
+        // workspacePath is now required, no fallback
+        if (!customWorkspacePath) {
+          throw new Error(
+            'workspacePath parameter is required.\n' +
+            'Example: workspacePath="/Users/username/Github/my-project"'
+          );
+        }
+        
+        const archDocPath = join(customWorkspacePath, '.vscode/docs/ARCHITECTURE.md');
         
         console.error(`📐 Asking architect about: ${question.substring(0, 80)}...`);
-        console.error(`📁 Workspace: ${workspacePath}`);
+        console.error(`📁 Workspace: ${customWorkspacePath}`);
+        console.error(`📄 Looking for: ${archDocPath}`);
         
         try {
+          // Check if file exists
+          if (!existsSync(archDocPath)) {
+            throw new Error(
+              `Architecture document not found at:\n${archDocPath}\n\n` +
+              `Expected location: <workspace>/.vscode/docs/ARCHITECTURE.md\n` +
+              `Workspace provided: ${customWorkspacePath}`
+            );
+          }
+          
           // Read architecture document
           const archContent = readFileSync(archDocPath, 'utf8');
           const archLines = archContent.split('\n');
+          
+          // Get Azure OpenAI credentials
+          const OPENAI_ENDPOINT = getEnv("AZURE_OPENAI_ENDPOINT");
+          const OPENAI_API_KEY = getEnv("AZURE_OPENAI_API_KEY");
+          const GPT5_DEPLOYMENT = getEnv("AZURE_OPENAI_GPT5_DEPLOYMENT");
           
           // Call Azure OpenAI architect agent
           const systemPrompt = `You are a senior system architect helping developers understand architecture documentation.
@@ -820,6 +843,20 @@ async function main() {
   await server.connect(transport);
   console.error("knowing-mcp server running on stdio");
   console.error(`Workspace: ${process.env.WORKSPACE_ROOT || process.cwd()}`);
+  console.error(`Browser Profile: ${process.env.BROWSER_USER_DATA_DIR || '~/.mcp-chrome'}`);
+  
+  // Cleanup on exit
+  process.on('SIGINT', async () => {
+    console.error('\n🛑 Shutting down...');
+    await closeBrowser();
+    process.exit(0);
+  });
+  
+  process.on('SIGTERM', async () => {
+    console.error('\n🛑 Shutting down...');
+    await closeBrowser();
+    process.exit(0);
+  });
 }
 
 main().catch((error) => {

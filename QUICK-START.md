@@ -1,17 +1,137 @@
 # Quick Start Guide - knowing-mcp
 
-Get up and running in 5 minutes!
+Get up and running with knowing-mcp in 5 minutes.
 
 ## Prerequisites
 
-- ✅ Node.js installed (v16 or higher)
-- ✅ VS Code with GitHub Copilot
-- ✅ GitHub account with Personal Access Token
-- ✅ Azure OpenAI access (optional, for ask-expert/ask-architect)
+- ✅ Node.js v18 or higher
+- ✅ VS Code with GitHub Copilot extension
+- ✅ GitHub Personal Access Token
 
-## Installation
+## Step 1: Install (2 minutes)
 
-### 1. Install Dependencies (2 minutes)
+```bash
+# Clone the repository
+cd ~/Github  # or your preferred location
+git clone https://github.com/aponomy/knowing-mcp.git
+cd knowing-mcp
+
+# Install dependencies
+npm install
+```
+
+## Step 2: Configure (2 minutes)
+
+### Get Your GitHub Token
+
+1. Go to: https://github.com/settings/tokens/new
+2. Token name: `knowing-mcp`
+3. Select scopes: `repo`, `project`, `read:org`
+4. Generate and copy the token
+
+### Create MCP Configuration
+
+> **Important**: MCP servers go in `mcp.json`, NOT `settings.json`
+
+Create: `~/Library/Application Support/Code/User/mcp.json`
+
+```json
+{
+  "servers": {
+    "knowing-mcp": {
+      "command": "node",
+      "args": ["/Users/YOUR_USERNAME/Github/knowing-mcp/src/server.mjs"],
+      "env": {
+        "GH_TOKEN": "${input:gh-token}"
+      }
+    }
+  },
+  "inputs": {
+    "gh-token": "ghp_your_actual_token_here"
+  }
+}
+```
+
+**Replace**:
+- `/Users/YOUR_USERNAME/...` with your actual path (run `pwd` in the knowing-mcp directory)
+- `ghp_your_actual_token_here` with your GitHub token
+
+## Step 3: Reload (30 seconds)
+
+Press `Cmd+Shift+P` → **"Developer: Reload Window"**
+
+## Step 4: Test (30 seconds)
+
+In Copilot Chat, type:
+
+```
+List issues in aponomy/knowing-mcp
+```
+
+✅ **Success!** The agent should call the `issue-list` tool and show results.
+
+## What's Next?
+
+### Add Azure OpenAI (Optional)
+
+For the `ask-expert` tool, add Azure credentials to your `mcp.json`:
+
+```json
+{
+  "servers": {
+    "knowing-mcp": {
+      "command": "node",
+      "args": ["/Users/YOUR_USERNAME/Github/knowing-mcp/src/server.mjs"],
+      "env": {
+        "GH_TOKEN": "${input:gh-token}",
+        "AZURE_OPENAI_ENDPOINT": "${input:azure-endpoint}",
+        "AZURE_OPENAI_API_KEY": "${input:azure-key}",
+        "AZURE_OPENAI_GPT5_DEPLOYMENT": "${input:azure-deployment}"
+      }
+    }
+  },
+  "inputs": {
+    "gh-token": "ghp_your_token",
+    "azure-endpoint": "https://your-resource.openai.azure.com",
+    "azure-key": "your_azure_key",
+    "azure-deployment": "gpt-4o-realtime"
+  }
+}
+```
+
+### Try More Commands
+
+```
+"Create an issue in facebook/react titled 'Documentation update'"
+"Show me issue #1 in microsoft/vscode"
+"List closed issues in nodejs/node"
+```
+
+## Troubleshooting
+
+**Server not starting?**
+- Check `mcp.json` is valid JSON
+- Verify the path to `server.mjs` is correct and absolute
+- Check VS Code Developer Console (`Cmd+Option+I`) for errors
+
+**Tools not appearing?**
+- Look for "Connection state: Running" in Developer Console
+- Check for "Discovered 11 tools" message
+- Reload window again
+
+**Authentication errors?**
+- Verify token has scopes: `repo`, `project`, `read:org`
+- Test token at https://github.com/settings/tokens
+
+## Full Documentation
+
+- [Deployment Guide](DEPLOYMENT.md) - Complete setup instructions
+- [README](README.md) - Full feature overview
+- [Contributing](CONTRIBUTING.md) - How to contribute
+
+---
+
+**You're all set!** 🎉 The MCP server is now available in all your VS Code workspaces.
 
 ```bash
 cd tools/knowing-mcp

@@ -11,7 +11,9 @@
     "start": "node src/server.mjs",
     "dev": "node --watch src/server.mjs",
     "test": "node test/test-connection.mjs",
-    "prepublishOnly": "npm test"
+    "test:browser": "node test/test-browser.mjs",
+    "prepublishOnly": "npm test",
+    "postinstall": "playwright install chrome"
   },
   "keywords": [
     "mcp",
@@ -21,7 +23,9 @@
     "copilot",
     "openai",
     "vscode",
-    "automation"
+    "automation",
+    "playwright",
+    "browser-automation"
   ],
   "author": "Gullers Grupp",
   "license": "MIT",
@@ -39,12 +43,11 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.2",
     "@octokit/rest": "^20.0.0",
-    "dotenv": "^17.2.3",
     "node-fetch": "^3.3.2",
     "openai": "^4.104.0",
+    "playwright": "^1.49.0",
     "zod": "^3.25.76"
   },
-  "devDependencies": {},
   "files": [
     "src/",
     "test/",

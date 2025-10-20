@@ -1,0 +1,35 @@
+{
+  "servers": {
+    "knowing-mcp-workspace": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/src/server.mjs"],
+      "env": {
+        "WORKSPACE_ROOT": "${workspaceFolder}",
+        "GH_TOKEN": "${input:gh-token}",
+        "AZURE_OPENAI_ENDPOINT": "${input:azure-endpoint}",
+        "AZURE_OPENAI_API_KEY": "${input:azure-key}",
+        "AZURE_OPENAI_GPT5_DEPLOYMENT": "gpt-5"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "gh-token",
+      "description": "GitHub Personal Access Token",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azure-endpoint",
+      "description": "Azure OpenAI Endpoint"
+    },
+    {
+      "type": "promptString",
+      "id": "azure-key",
+      "description": "Azure OpenAI API Key",
+      "password": true
+    }
+  ]
+}

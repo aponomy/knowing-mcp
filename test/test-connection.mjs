@@ -103,10 +103,10 @@ optionalVars.forEach(varName => {
 console.log('\n📦 Test 3: Dependencies');
 console.log('─────────────────────────────────');
 
-// Find the knowing-mcp directory
+// Find the knowing-mcp directory (go up from test/ to project root)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const knowingMcpDir = __dirname;
+const knowingMcpDir = dirname(__dirname); // Go up one level from test/ to project root
 
 try {
   const packageJsonPath = join(knowingMcpDir, 'package.json');
@@ -125,11 +125,11 @@ try {
   console.log(`❌ Error reading package.json: ${error.message}`);
 }
 
-// Test 4: Server executable
+// Test 4: Server Executable
 console.log('\n🚀 Test 4: Server Executable');
 console.log('─────────────────────────────────');
 
-const serverPath = join(knowingMcpDir, 'server.mjs');
+const serverPath = join(knowingMcpDir, 'src', 'server.mjs');
 if (existsSync(serverPath)) {
   console.log('✅ server.mjs found');
   console.log(`   Path: ${serverPath}`);
@@ -167,9 +167,9 @@ if (hasGit && hasCredentials && hasDeps && hasServer) {
 } else {
   console.log('⚠️  Some checks failed. Please review above.');
   if (!hasGit) console.log('   - Not in a git repository');
-  if (!hasCredentials) console.log('   - Missing credentials (see README.md for setup)');
-  if (!hasDeps) console.log('   - Run: npm install in tools/knowing-mcp');
-  if (!hasServer) console.log('   - Missing server.mjs');
+  if (!hasCredentials) console.log('   - Missing credentials (edit ~/.knowing-mcp.env or set in VS Code settings)');
+  if (!hasDeps) console.log('   - Run: npm install');
+  if (!hasServer) console.log('   - Missing src/server.mjs');
 }
 
 console.log('');

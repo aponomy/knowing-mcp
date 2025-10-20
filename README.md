@@ -1,260 +1,517 @@
-# knowing-mcp# knowing-mcp
+# knowing-mcp# knowing-mcp# knowing-mcp
 
 
 
-[![npm version](https://badge.fury.io/js/knowing-mcp.svg)](https://www.npmjs.com/package/knowing-mcp)**Workspace-aware MCP (Model Context Protocol) server** that works in any VS Code project. Automatically detects the GitHub repository from your workspace's git remote and provides GitHub operations, expert AI assistance, and architecture documentation tools.
+[![npm version](https://badge.fury.io/js/knowing-mcp.svg)](https://www.npmjs.com/package/knowing-mcp)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Node.js CI](https://github.com/Gullers-Grupp/knowing-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Gullers-Grupp/knowing-mcp/actions/workflows/ci.yml)## 🎯 Key Features
+[![npm version](https://badge.fury.io/js/knowing-mcp.svg)](https://www.npmjs.com/package/knowing-mcp)**Workspace-aware MCP (Model Context Protocol) server** that works in any VS Code project. Automatically detects the GitHub repository from your workspace's git remote and provides GitHub operations, expert AI assistance, and architecture documentation tools.
 
+**Global MCP (Model Context Protocol) server** for GitHub operations and AI assistance. Configure once in VS Code, use in any workspace with any repository.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Workspace-aware MCP server** for GitHub operations and AI assistance that works in any VS Code project. Automatically detects your repository, so you never need to specify owner/repo again!- ✅ **Workspace-aware**: Automatically detects GitHub repo from git remote
+<p align="center">
 
-- ✅ **Global credentials**: Store GitHub token and Azure keys once, use everywhere
+  <img src="https://img.shields.io/badge/MCP-Model%20Context%20Protocol-blue" alt="MCP"/>[![Node.js CI](https://github.com/Gullers-Grupp/knowing-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Gullers-Grupp/knowing-mcp/actions/workflows/ci.yml)## 🎯 Key Features
 
-<p align="center">- ✅ **Works in any project**: Register once, available in all VS Code workspaces
-
-  <img src="https://img.shields.io/badge/MCP-Model%20Context%20Protocol-blue" alt="MCP"/>- ✅ **No hardcoding**: No need to specify owner/repo for each operation
-
-  <img src="https://img.shields.io/badge/GitHub-Copilot-green" alt="GitHub Copilot"/>- ✅ **Full tool suite**: GitHub issues, projects, ask-expert, ask-architect
+  <img src="https://img.shields.io/badge/GitHub-Copilot-green" alt="GitHub Copilot"/>
 
   <img src="https://img.shields.io/badge/Azure-OpenAI-orange" alt="Azure OpenAI"/>
 
+</p>
+
+**Workspace-aware MCP server** for GitHub operations and AI assistance that works in any VS Code project. Automatically detects your repository, so you never need to specify owner/repo again!- ✅ **Workspace-aware**: Automatically detects GitHub repo from git remote
+
+## ✨ Features
+
+- ✅ **Global credentials**: Store GitHub token and Azure keys once, use everywhere
+
+- 🌍 **Works in any VS Code workspace** - configure once, use everywhere
+
+- 🔐 **Global credentials** - GitHub token and Azure keys stored securely<p align="center">- ✅ **Works in any project**: Register once, available in all VS Code workspaces
+
+- 🛠️ **11 GitHub tools** - Full issue and project management
+
+- 🤖 **2 AI tools** - Expert consultation (Azure OpenAI GPT-5) and architecture Q&A  <img src="https://img.shields.io/badge/MCP-Model%20Context%20Protocol-blue" alt="MCP"/>- ✅ **No hardcoding**: No need to specify owner/repo for each operation
+
+- 📚 **Simple setup** - Configure mcp.json and reload
+
+  <img src="https://img.shields.io/badge/GitHub-Copilot-green" alt="GitHub Copilot"/>- ✅ **Full tool suite**: GitHub issues, projects, ask-expert, ask-architect
+
+## 🚀 Quick Start
+
+  <img src="https://img.shields.io/badge/Azure-OpenAI-orange" alt="Azure OpenAI"/>
+
+### 1. Install Dependencies
+
 </p>## 🚀 Quick Start
 
+```bash
 
+cd ~/Github  # or your preferred location
 
-## ✨ Features### 1. Install Dependencies
+git clone https://github.com/aponomy/knowing-mcp.git
 
+cd knowing-mcp## ✨ Features### 1. Install Dependencies
 
+npm install
 
-- 🎯 **Auto-detects GitHub repository** from git remote - no more typing owner/repo!```bash
-
-- 🌍 **Works in any VS Code workspace** - configure once, use everywherecd tools/knowing-mcp
-
-- 🔐 **Global credentials** - GitHub token and Azure keys stored securelynpm install
-
-- 🛠️ **11 GitHub tools** - Full issue and project management```
-
-- 🤖 **2 AI tools** - Expert consultation (GPT-5) and architecture Q&A
-
-- 📚 **Zero configuration per-project** - Just open and use!### 2. Configure Global Credentials
+```
 
 
 
-## 🚀 Quick Start**Option A: VS Code User Settings (Recommended)**
+### 2. Configure Credentials- 🎯 **Auto-detects GitHub repository** from git remote - no more typing owner/repo!```bash
 
 
 
-### InstallEdit your VS Code **User Settings** (JSON):
-
-- Press `Cmd+Shift+P` → "Preferences: Open User Settings (JSON)"
-
-```bash- Add the MCP server configuration:
-
-npm install -g knowing-mcp
-
-``````json
-
-{
-
-### Configure  "github.copilot.chat.mcpServers": {
-
-    "knowing-mcp": {
-
-Add to VS Code **User Settings** (JSON):      "command": "node",
-
-      "args": ["/Users/YOUR_USERNAME/Github/gullers-platform/tools/knowing-mcp/server.mjs"],
-
-```json      "env": {
-
-{        "WORKSPACE_ROOT": "${workspaceFolder}",
-
-  "github.copilot.chat.mcpServers": {        "GH_TOKEN": "YOUR_GITHUB_TOKEN",
-
-    "knowing-mcp": {        "AZURE_OPENAI_ENDPOINT": "https://your-resource.openai.azure.com",
-
-      "command": "knowing-mcp",        "AZURE_OPENAI_API_KEY": "YOUR_AZURE_KEY",
-
-      "env": {        "AZURE_OPENAI_GPT5_DEPLOYMENT": "gpt-5"
-
-        "WORKSPACE_ROOT": "${workspaceFolder}",      }
-
-        "GH_TOKEN": "ghp_your_github_token"    }
-
-      }  }
-
-    }}
-
-  }```
-
-}
-
-```**Option B: Global Config File**
+Create `~/.knowing-mcp.env`:- 🌍 **Works in any VS Code workspace** - configure once, use everywherecd tools/knowing-mcp
 
 
 
-### UseCreate `~/.knowing-mcp.env`:
-
-
-
-Open **any** workspace with a GitHub remote, then in Copilot Chat:```bash
+```bash- 🔐 **Global credentials** - GitHub token and Azure keys stored securelynpm install
 
 # GitHub Personal Access Token
 
-```GH_TOKEN=ghp_your_token_here
-
-List all open issues
-
-Create issue titled "Fix header layout"# Azure OpenAI Configuration
-
-Show me issue #42AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
-
-```AZURE_OPENAI_API_KEY=your_key_here
-
-AZURE_OPENAI_GPT5_DEPLOYMENT=gpt-5
-
-**No need to specify owner/repo - automatically detected!** ✨```
+GH_TOKEN=ghp_your_token_here- 🛠️ **11 GitHub tools** - Full issue and project management```
 
 
 
-## 📖 Documentation**Getting your tokens:**
+# Azure OpenAI Configuration (optional)- 🤖 **2 AI tools** - Expert consultation (GPT-5) and architecture Q&A
 
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
 
+AZURE_OPENAI_API_KEY=your_key_here- 📚 **Zero configuration per-project** - Just open and use!### 2. Configure Global Credentials
 
-- **[Installation Guide](INSTALL.md)** - Complete installation instructions- **GitHub Token**: https://github.com/settings/tokens/new
-
-- **[Quick Start](QUICK-START.md)** - Get running in 5 minutes  - Scopes needed: `repo`, `project`, `read:org`
-
-- **[VS Code Setup](VSCODE-SETUP.md)** - Detailed configuration- **Azure OpenAI**: From Azure Portal → Your OpenAI resource → Keys and Endpoint
-
-- **[Contributing](CONTRIBUTING.md)** - How to contribute
-
-### 3. Update the Server Path
-
-## 🎯 What Makes It Special?
-
-In the VS Code User Settings above, replace:
-
-### Before (traditional MCP):```
-
-```/Users/YOUR_USERNAME/Github/gullers-platform/tools/knowing-mcp/server.mjs
-
-Create issue in owner/repo with title "Bug fix"  ← Manual every time```
+AZURE_OPENAI_GPT5_DEPLOYMENT=gpt-4o-realtime
 
 ```
 
-With the actual absolute path to `server.mjs` on your machine.
 
-### After (knowing-mcp):
 
-```**Find your path:**
+**Get your tokens:**## 🚀 Quick Start**Option A: VS Code User Settings (Recommended)**
 
-Create issue titled "Bug fix"  ← Auto-detects your repo! 🎉```bash
+- **GitHub**: https://github.com/settings/tokens/new (scopes: `repo`, `project`, `read:org`)
 
-```cd tools/knowing-mcp
-
-pwd
-
-### Cross-Workspace:# Copy the output and append "/server.mjs"
-
-``````
-
-# In workspace A (Gullers-Grupp/platform)
-
-"List issues" → Shows issues from Gullers-Grupp/platform### 4. Reload VS Code
+- **Azure OpenAI**: Azure Portal → Your OpenAI resource → Keys and Endpoint
 
 
 
-# In workspace B (microsoft/vscode)  - Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
-
-"List issues" → Shows issues from microsoft/vscode- Run: **"Developer: Reload Window"**
+### 3. Configure VS Code MCP### InstallEdit your VS Code **User Settings** (JSON):
 
 
 
-Same command, different repo. Automatic! ✨### 5. Test in Any Workspace
+> **Important**: MCP servers are configured in `mcp.json`, NOT in `settings.json`- Press `Cmd+Shift+P` → "Preferences: Open User Settings (JSON)"
 
-```
 
-Open **any** VS Code workspace that has a GitHub remote, then in Copilot Chat:
 
-## 🛠️ Available Tools
+Create or edit: `~/Library/Application Support/Code/User/mcp.json````bash- Add the MCP server configuration:
 
-```
 
-### GitHub Tools (Auto-detects repo)@workspace List all open issues
 
-```
-
-| Tool | Description | Required Params |
-
-|------|-------------|-----------------|The MCP will automatically detect your repository and list issues!
-
-| `issue-create` | Create an issue | `title` |
-
-| `issue-list` | List issues | none |## 📚 Available Tools
-
-| `issue-get` | Get issue details | `issue_number` |
-
-| `issue-comment` | Add comment | `issue_number`, `body` |### GitHub Tools (Auto-detect repo from workspace)
-
-| `issue-update` | Update issue | `issue_number` |
-
-| `issue-close` | Close issue | `issue_number` |#### `issue-create`
-
-| `project-get` | Get project info | `owner`, `number` |Create a GitHub issue. No need to specify owner/repo.
-
-| `project-item-add` | Add to project | `projectId`, `contentId` |
-
-| `project-draft-issue` | Create draft | `projectId`, `title` |```typescript
+```jsonnpm install -g knowing-mcp
 
 {
 
-### AI Tools  title: string;           // Required
+  "servers": {``````json
 
-  body?: string;
+    "knowing-mcp": {
 
-| Tool | Description |  labels?: string[];
+      "command": "node",{
 
-|------|-------------|  owner?: string;          // Optional: auto-detected
+      "args": ["/Users/YOUR_USERNAME/Github/knowing-mcp/src/server.mjs"],
 
-| `ask-expert` | Ask Azure OpenAI GPT-5 complex questions |  repo?: string;           // Optional: auto-detected
+      "env": {### Configure  "github.copilot.chat.mcpServers": {
 
-| `ask-architect` | Query architecture docs (.vscode/docs/ARCHITECTURE.md) |}
+        "GH_TOKEN": "${input:gh-token}",
+
+        "AZURE_OPENAI_ENDPOINT": "${input:azure-endpoint}",    "knowing-mcp": {
+
+        "AZURE_OPENAI_API_KEY": "${input:azure-key}",
+
+        "AZURE_OPENAI_GPT5_DEPLOYMENT": "${input:azure-deployment}"Add to VS Code **User Settings** (JSON):      "command": "node",
+
+      }
+
+    }      "args": ["/Users/YOUR_USERNAME/Github/gullers-platform/tools/knowing-mcp/server.mjs"],
+
+  },
+
+  "inputs": {```json      "env": {
+
+    "gh-token": "ghp_your_actual_token",
+
+    "azure-endpoint": "https://your-resource.openai.azure.com",{        "WORKSPACE_ROOT": "${workspaceFolder}",
+
+    "azure-key": "your_azure_key",
+
+    "azure-deployment": "gpt-4o-realtime"  "github.copilot.chat.mcpServers": {        "GH_TOKEN": "YOUR_GITHUB_TOKEN",
+
+  }
+
+}    "knowing-mcp": {        "AZURE_OPENAI_ENDPOINT": "https://your-resource.openai.azure.com",
 
 ```
 
-## 💡 Examples
+      "command": "knowing-mcp",        "AZURE_OPENAI_API_KEY": "YOUR_AZURE_KEY",
 
-**Example in Copilot:**
+**Replace**: 
 
-### Issue Management```
+- `/Users/YOUR_USERNAME/...` with the actual absolute path to your `server.mjs`      "env": {        "AZURE_OPENAI_GPT5_DEPLOYMENT": "gpt-5"
 
-Create an issue titled "Fix login bug" with label "bug"
+- All credential values with your actual tokens
+
+        "WORKSPACE_ROOT": "${workspaceFolder}",      }
+
+### 4. Reload VS Code
+
+        "GH_TOKEN": "ghp_your_github_token"    }
+
+Press `Cmd+Shift+P` → **"Developer: Reload Window"**
+
+      }  }
+
+### 5. Test It
+
+    }}
+
+In Copilot Chat, try:
+
+  }```
+
+```
+
+List issues in aponomy/knowing-mcp}
+
+```
+
+```**Option B: Global Config File**
+
+The agent should automatically call the `issue-list` tool with the specified repository.
+
+
+
+## 📚 Available Tools
+
+### UseCreate `~/.knowing-mcp.env`:
+
+### GitHub Tools (require owner/repo)
+
+
+
+| Tool | Description | Required Parameters |
+
+|------|-------------|---------------------|Open **any** workspace with a GitHub remote, then in Copilot Chat:```bash
+
+| `issue-list` | List issues | `owner`, `repo` |
+
+| `issue-create` | Create an issue | `owner`, `repo`, `title` |# GitHub Personal Access Token
+
+| `issue-get` | Get issue details | `owner`, `repo`, `issue_number` |
+
+| `issue-update` | Update an issue | `owner`, `repo`, `issue_number` |```GH_TOKEN=ghp_your_token_here
+
+| `issue-close` | Close an issue | `owner`, `repo`, `issue_number` |
+
+| `issue-comment` | Comment on issue | `owner`, `repo`, `issue_number`, `body` |List all open issues
+
+
+
+### Project ToolsCreate issue titled "Fix header layout"# Azure OpenAI Configuration
+
+
+
+| Tool | Description | Required Parameters |Show me issue #42AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+
+|------|-------------|---------------------|
+
+| `project-get` | Get project info | `owner`, `number` |```AZURE_OPENAI_API_KEY=your_key_here
+
+| `project-item-add` | Add item to project | `projectId`, `contentId` |
+
+| `project-draft-issue` | Create draft issue | `projectId`, `title` |AZURE_OPENAI_GPT5_DEPLOYMENT=gpt-5
+
+
+
+### AI Tools (no repo needed)**No need to specify owner/repo - automatically detected!** ✨```
+
+
+
+| Tool | Description | Required Parameters |
+
+|------|-------------|---------------------|
+
+| `ask-expert` | Ask Azure OpenAI GPT-5 | `question`, `context` |## 📖 Documentation**Getting your tokens:**
+
+| `ask-architect` | Query architecture docs | `question` |
+
+
+
+## 🎯 Usage Examples
+
+- **[Installation Guide](docs/docs/INSTALL.md)** - Complete installation instructions- **GitHub Token**: https://github.com/settings/tokens/new
+
+### Natural Language Commands
+
+- **[Quick Start](QUICK-START.md)** - Get running in 5 minutes  - Scopes needed: `repo`, `project`, `read:org`
+
+The agent intelligently extracts owner/repo from your commands:
+
+- **[VS Code Setup](docs/VSCODE-SETUP.md)** - Detailed configuration- **Azure OpenAI**: From Azure Portal → Your OpenAI resource → Keys and Endpoint
+
+```
+
+"List issues in aponomy/knowing-mcp"- **[Contributing](CONTRIBUTING.md)** - How to contribute
+
+"Create an issue in microsoft/vscode titled 'Bug fix'"
+
+"Show me issue #42 in facebook/react"### 3. Update the Server Path
+
+```
+
+## 🎯 What Makes It Special?
+
+### Working Across Repositories
+
+In the VS Code User Settings above, replace:
+
+You can work with different repos in the same session:
+
+### Before (traditional MCP):```
+
+```
+
+"List issues in aponomy/knowing-mcp"```/Users/YOUR_USERNAME/Github/gullers-platform/tools/knowing-mcp/server.mjs
+
+"Now show issues in microsoft/vscode"
+
+"Create an issue in facebook/react titled 'Documentation update'"Create issue in owner/repo with title "Bug fix"  ← Manual every time```
+
+```
+
+```
+
+### Using AI Tools
+
+With the actual absolute path to `server.mjs` on your machine.
+
+```
+
+"Ask expert: Why is my React component re-rendering unnecessarily?"### After (knowing-mcp):
+
+"Ask architect: How should we structure our microservices?"
+
+``````**Find your path:**
+
+
+
+## 🔧 Why owner/repo are RequiredCreate issue titled "Bug fix"  ← Auto-detects your repo! 🎉```bash
+
+
+
+Global MCP servers cannot automatically detect which workspace VS Code is currently using because:```cd tools/knowing-mcp
+
+
+
+- ❌ MCP protocol doesn't define "workspace" conceptpwd
+
+- ❌ VS Code doesn't pass workspace context to global servers  
+
+- ❌ `process.cwd()` is the user's home directory, not the workspace### Cross-Workspace:# Copy the output and append "/server.mjs"
+
+- ❌ `${workspaceFolder}` variables don't work in global `mcp.json`
 
 ``````
 
+Making `owner` and `repo` **required** ensures:
+
+# In workspace A (Gullers-Grupp/platform)
+
+- ✅ Clear, explicit operations
+
+- ✅ Works in any workspace"List issues" → Shows issues from Gullers-Grupp/platform### 4. Reload VS Code
+
+- ✅ No silent failures or confusing errors
+
+- ✅ Agent can intelligently extract from conversation context
+
+
+
+## 📖 Documentation# In workspace B (microsoft/vscode)  - Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
+
+
+
+- **[Deployment Guide](docs/docs/DEPLOYMENT.md)** - Complete deployment instructions"List issues" → Shows issues from microsoft/vscode- Run: **"Developer: Reload Window"**
+
+- **[Installation Guide](docs/docs/INSTALL.md)** - Detailed installation steps
+
+- **[Quick Start](QUICK-START.md)** - Get running in 5 minutes
+
+- **[Contributing](CONTRIBUTING.md)** - How to contribute
+
+- **[Security](SECURITY.md)** - Security best practicesSame command, different repo. Automatic! ✨### 5. Test in Any Workspace
+
+
+
+## 🔧 Troubleshooting```
+
+
+
+### Server Not StartingOpen **any** VS Code workspace that has a GitHub remote, then in Copilot Chat:
+
+
+
+1. Check `mcp.json` syntax (must be valid JSON)## 🛠️ Available Tools
+
+2. Verify server path is absolute and correct
+
+3. Ensure Node.js v18+ is installed (`node --version`)```
+
+4. Check VS Code Developer Console for errors
+
+### GitHub Tools (Auto-detects repo)@workspace List all open issues
+
+### Tools Not Appearing
+
+```
+
+1. Verify server is running (Developer Console: "Connection state: Running")
+
+2. Check for "Discovered 11 tools" message| Tool | Description | Required Params |
+
+3. Reload window: `Cmd+Shift+P` → "Developer: Reload Window"
+
+4. Ensure tools are enabled per-agent/chat session|------|-------------|-----------------|The MCP will automatically detect your repository and list issues!
+
+
+
+### Authentication Errors| `issue-create` | Create an issue | `title` |
+
+
+
+1. Verify GitHub token scopes: `repo`, `project`, `read:org`| `issue-list` | List issues | none |## 📚 Available Tools
+
+2. Check credentials in `mcp.json` are correct
+
+3. Test token at https://github.com/settings/tokens| `issue-get` | Get issue details | `issue_number` |
+
+4. Verify Azure credentials in Azure Portal
+
+| `issue-comment` | Add comment | `issue_number`, `body` |### GitHub Tools (Auto-detect repo from workspace)
+
+## 🎓 Configuration Notes
+
+| `issue-update` | Update issue | `issue_number` |
+
+### Key Differences from Initial Design
+
+| `issue-close` | Close issue | `issue_number` |#### `issue-create`
+
+| Aspect | Initial Design | Actual Implementation |
+
+|--------|---------------|----------------------|| `project-get` | Get project info | `owner`, `number` |Create a GitHub issue. No need to specify owner/repo.
+
+| **Config file** | `settings.json` | `mcp.json` |
+
+| **Location** | `github.copilot.chat.mcpServers` | `servers` in mcp.json || `project-item-add` | Add to project | `projectId`, `contentId` |
+
+| **Workspace vars** | `${workspaceFolder}` supported | Only in workspace configs |
+
+| **Repo detection** | Automatic from workspace | Explicit owner/repo required || `project-draft-issue` | Create draft | `projectId`, `title` |```typescript
+
+| **Credentials** | Direct in `env` | Uses `inputs` pattern |
+
+{
+
+### Where to Configure
+
+### AI Tools  title: string;           // Required
+
+- **Global**: `~/Library/Application Support/Code/User/mcp.json`
+
+  - Available in all workspaces  body?: string;
+
+  - Cannot use `${workspaceFolder}` variables
+
+  - Must specify owner/repo explicitly| Tool | Description |  labels?: string[];
+
+
+
+- **Workspace**: `.vscode/mcp.json` (optional)|------|-------------|  owner?: string;          // Optional: auto-detected
+
+  - Workspace-specific configuration
+
+  - Can use `${workspaceFolder}` variables| `ask-expert` | Ask Azure OpenAI GPT-5 complex questions |  repo?: string;           // Optional: auto-detected
+
+  - Overrides global config
+
+| `ask-architect` | Query architecture docs (.vscode/docs/ARCHITECTURE.md) |}
+
+## 🤝 Contributing
+
+```
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 💡 Examples
+
+## 📝 License
+
+**Example in Copilot:**
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+### Issue Management```
+
+## 🆘 Support
+
+Create an issue titled "Fix login bug" with label "bug"
+
+- **Issues**: https://github.com/aponomy/knowing-mcp/issues
+
+- **Discussions**: https://github.com/aponomy/knowing-mcp/discussions``````
+
+- **Documentation**: Full docs in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
 # List issues (auto-detects current repo)
+
+## 🔄 Updating
 
 "List all open issues"#### `issue-list`
 
+To update to the latest version:
+
 "Show me closed bugs"List issues in the current workspace's repository.
 
+```bash
+
+cd ~/Github/knowing-mcp
+
+git pull origin main
+
+npm install# Create issues```typescript
+
+# Reload VS Code: Cmd+Shift+P → "Developer: Reload Window"
+
+```"Create issue titled 'Fix login bug' with label 'bug'"{
 
 
-# Create issues```typescript
 
-"Create issue titled 'Fix login bug' with label 'bug'"{
+## 🌟 Star History  state?: "open" | "closed" | "all";  // Default: "open"
 
-  state?: "open" | "closed" | "all";  // Default: "open"
 
-# Get details  limit?: number;                      // Default: 20
 
-"Show me issue #42"  owner?: string;                      // Optional: auto-detected
+If you find this useful, please star the repo! ⭐# Get details  limit?: number;                      // Default: 20
 
-"What's the status of issue #123?"  repo?: string;                       // Optional: auto-detected
+
+
+---"Show me issue #42"  owner?: string;                      // Optional: auto-detected
+
+
+
+**Built with** [Model Context Protocol](https://modelcontextprotocol.io/) | **Powered by** [Azure OpenAI](https://azure.microsoft.com/en-us/products/ai-services/openai-service)"What's the status of issue #123?"  repo?: string;                       // Optional: auto-detected
+
 
 }
 
@@ -364,7 +621,7 @@ npm install  labels?: string[];
 
 }
 
-See [INSTALL.md](INSTALL.md) for detailed instructions.```
+See [docs/INSTALL.md](docs/INSTALL.md) for detailed instructions.```
 
 
 
