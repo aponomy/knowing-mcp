@@ -60,6 +60,10 @@ See [../README.md](../README.md#-available-tools) for:
 - `ask-expert` - Consult Azure OpenAI GPT-5
 - `ask-architect` - Query architecture documentation
 
+### Data Collection Tools
+See [CSV-TOOLS.md](CSV-TOOLS.md) for:
+- `append-csv-row` - Append rows to CSV files for incremental data collection
+
 ### Browser Automation Tools (17 tools)
 See [BROWSER-AUTOMATION.md](BROWSER-AUTOMATION.md) for complete reference:
 
@@ -90,6 +94,11 @@ See [BROWSER-AUTOMATION.md](BROWSER-AUTOMATION.md) for complete reference:
 ### "I want to automate GitHub"
 1. [BROWSER-EXAMPLES.md](BROWSER-EXAMPLES.md#2-github-pr-workflow) - GitHub PR example
 2. [../README.md](../README.md#github-tools) - GitHub API tools
+
+### "I want to collect data from websites"
+1. [CSV-TOOLS.md](CSV-TOOLS.md) - CSV append tool documentation
+2. [BROWSER-EXAMPLES.md](BROWSER-EXAMPLES.md) - Browser automation examples
+3. [BROWSER-AUTOMATION.md](BROWSER-AUTOMATION.md) - Browser tool reference
 
 ### "I'm having issues"
 1. [BROWSER-AUTOMATION.md](BROWSER-AUTOMATION.md#troubleshooting) - Troubleshooting

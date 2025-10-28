@@ -8,10 +8,10 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Octokit } from "@octokit/rest";
 import { execSync } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import fetch from "node-fetch";
 import OpenAI from "openai";
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { closeBrowser } from './browser-manager.mjs';
 import { PLAYWRIGHT_TOOLS, handlePlaywrightTool } from './playwright-tools.mjs';
 
@@ -306,6 +306,36 @@ const TOOLS = [
       required: ["question", "workspacePath"]
     }
   },
+  {
+    name: "append-csv-row",
+    description: "Append a single row to a CSV file. This tool is designed for incrementally building CSV datasets from browser automation or other data collection workflows. The tool handles proper CSV formatting and creates the file if it doesn't exist.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        filePath: {
+          type: "string",
+          description: "Absolute path to the CSV file (e.g., /Users/username/project/data/results.csv)"
+        },
+        row: {
+          type: "array",
+          description: "Array of values to append as a new row. Values can be strings, numbers, or null. Will be properly escaped for CSV format.",
+          items: {
+            type: ["string", "number", "null"]
+          }
+        }
+      },
+      required: ["filePath", "row"]
+    }
+  },
+  {
+    name: "github-token-check",
+    description: "Check what your GitHub token can access - useful for debugging permission issues",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
   // Add Playwright browser automation tools
   ...PLAYWRIGHT_TOOLS
 ];
@@ -527,19 +557,134 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "project-get": {
         const { owner, number } = args;
-        const query = `query($owner:String!, $number:Int!){
-          user(login:$owner){ projectV2(number:$number){ id title url shortDescription } }
-          organization(login:$owner){ projectV2(number:$number){ id title url shortDescription } }
-        }`;
-        const { data } = await octokit.graphql(query, { owner, number });
-        const project = data.user?.projectV2 || data.organization?.projectV2;
+        
+        let project = null;
+        let ownerType = null;
+        let orgExists = false;
+        let userExists = false;
+        let allOrgProjects = [];
+        
+        // Try organization first (most common for projects)
+        try {
+          const orgQuery = `query($owner:String!, $number:Int!){
+            organization(login:$owner){ 
+              login
+              projectV2(number:$number){ 
+                id 
+                title 
+                url 
+                shortDescription 
+              }
+              projectsV2(first: 50, orderBy: {field: NUMBER, direction: ASC}) {
+                nodes { 
+                  number 
+                  title 
+                  url 
+                }
+              }
+            }
+          }`;
+          const { data } = await octokit.graphql(orgQuery, { owner, number });
+          if (data?.organization) {
+            orgExists = true;
+            allOrgProjects = data.organization.projectsV2?.nodes || [];
+            project = data.organization.projectV2;
+            if (project) {
+              ownerType = 'organization';
+            }
+          }
+        } catch (orgError) {
+          // Not an organization, access denied, or GraphQL error
+          console.error(`⚠️  Organization lookup failed: ${orgError.message}`);
+          // GraphQL errors might indicate "not found" or "no access"
+        }
+        
+        // If not found in organization, try user account
+        if (!project) {
+          try {
+            const userQuery = `query($owner:String!, $number:Int!){
+              user(login:$owner){ 
+                login
+                projectV2(number:$number){ 
+                  id 
+                  title 
+                  url 
+                  shortDescription 
+                } 
+                projectsV2(first: 50, orderBy: {field: NUMBER, direction: ASC}) {
+                  nodes { 
+                    number 
+                    title 
+                    url 
+                  }
+                }
+              }
+            }`;
+            const { data } = await octokit.graphql(userQuery, { owner, number });
+            if (data?.user) {
+              userExists = true;
+              allOrgProjects = data.user.projectsV2?.nodes || [];
+              project = data.user.projectV2;
+              if (project) {
+                ownerType = 'user';
+              }
+            }
+          } catch (userError) {
+            console.error(`⚠️  User lookup failed: ${userError.message}`);
+          }
+        }
         
         if (!project) {
+          let errorMsg = `❌ Project #${number} not found for ${owner}\n\n`;
+          
+          if (orgExists || userExists) {
+            errorMsg += `The ${orgExists ? 'organization' : 'user'} "${owner}" exists.\n\n`;
+            
+            // Show available projects if any
+            if (allOrgProjects.length > 0) {
+              errorMsg += `✅ Your token CAN see Projects v2 for this ${orgExists ? 'org' : 'user'}!\n\n`;
+              errorMsg += `**Available Projects v2:**\n`;
+              allOrgProjects.forEach(p => {
+                errorMsg += `- #${p.number}: ${p.title}\n  ${p.url}\n`;
+              });
+              errorMsg += `\n**Issue:** Project #${number} is not in this list.\n\n`;
+              errorMsg += `**Possible reasons:**\n`;
+              errorMsg += `- Wrong project number (double-check the URL)\n`;
+              errorMsg += `- Project was deleted or moved\n`;
+              errorMsg += `- You don't have access to this specific project\n`;
+            } else {
+              errorMsg += `⚠️  **GitHub Token Permission Issue Detected**\n\n`;
+              errorMsg += `Your token cannot see ANY Projects v2 for "${owner}".\n\n`;
+              errorMsg += `**For Projects v2 (new GitHub Projects), you need:**\n`;
+              errorMsg += `- ✅ \`read:org\` scope (for organization projects)\n`;
+              errorMsg += `- ✅ Token must be SSO-authorized if org enforces SAML SSO\n\n`;
+              errorMsg += `⚠️  NOTE: The \`project\` scope is for **classic Projects** (v1), NOT Projects v2!\n\n`;
+              errorMsg += `**To fix this:**\n`;
+              errorMsg += `1. Go to: https://github.com/settings/tokens\n`;
+              errorMsg += `2. Find your "knowing-mcp" token\n`;
+              errorMsg += `3. Ensure these scopes are selected:\n`;
+              errorMsg += `   ✅ repo\n`;
+              errorMsg += `   ✅ read:org (REQUIRED for Projects v2!)\n`;
+              errorMsg += `   ✅ project (optional, only for classic projects)\n`;
+              errorMsg += `4. Click "Configure SSO" and authorize for "${owner}"\n`;
+              errorMsg += `5. Update the token in VS Code settings\n`;
+              errorMsg += `6. Restart VS Code\n\n`;
+              errorMsg += `**Alternative: Use Fine-grained PAT**\n`;
+              errorMsg += `1. Create at: https://github.com/settings/personal-access-tokens/new\n`;
+              errorMsg += `2. Resource owner: ${owner}\n`;
+              errorMsg += `3. Organization permissions → Projects: Read-only\n`;
+              errorMsg += `4. Use this token instead\n`;
+            }
+          } else {
+            errorMsg += `Could not find user or organization: "${owner}"\n\n`;
+            errorMsg += `Please verify the owner name is correct.`;
+          }
+          
           return {
             content: [
               {
                 type: "text",
-                text: `❌ Project #${number} not found for ${owner}`
+                text: errorMsg
               }
             ]
           };
@@ -549,7 +694,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: "text",
-              text: `📋 Project: ${project.title}\nID: ${project.id}\nURL: ${project.url}\nDescription: ${project.shortDescription || 'No description'}`
+              text: `📋 Project: ${project.title}\n` +
+                    `Owner: ${owner} (${ownerType})\n` +
+                    `ID: ${project.id}\n` +
+                    `URL: ${project.url}\n` +
+                    `Description: ${project.shortDescription || 'No description'}`
             }
           ]
         };
@@ -817,6 +966,120 @@ Analyze the architecture document and answer the question. Cite specific section
           }
           
           throw error;
+        }
+      }
+
+      case "append-csv-row": {
+        const { filePath, row } = args;
+        
+        if (!filePath) {
+          throw new Error('filePath is required');
+        }
+        
+        if (!Array.isArray(row)) {
+          throw new Error('row must be an array');
+        }
+        
+        console.error(`📊 Appending row to CSV: ${filePath}`);
+        
+        try {
+          // Ensure directory exists
+          const dir = dirname(filePath);
+          if (!existsSync(dir)) {
+            mkdirSync(dir, { recursive: true });
+            console.error(`✅ Created directory: ${dir}`);
+          }
+          
+          // CSV escape function - handles quotes and commas
+          const escapeCsvValue = (value) => {
+            if (value === null || value === undefined) {
+              return '';
+            }
+            
+            const str = String(value);
+            
+            // If value contains comma, quote, or newline, wrap in quotes and escape internal quotes
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            
+            return str;
+          };
+          
+          // Convert row to CSV line
+          const csvLine = row.map(escapeCsvValue).join(',') + '\n';
+          
+          // Check if file exists to determine if it's a new file
+          const isNewFile = !existsSync(filePath);
+          
+          // Append to file (creates if doesn't exist)
+          appendFileSync(filePath, csvLine, 'utf8');
+          
+          console.error(`✅ Appended row to ${filePath} (${row.length} columns)`);
+          
+          return {
+            content: [
+              {
+                type: "text",
+                text: `✅ ${isNewFile ? 'Created CSV file and appended' : 'Appended'} row to: ${filePath}\n` +
+                      `Columns: ${row.length}\n` +
+                      `Data: ${row.map(v => v === null ? 'null' : String(v)).join(', ')}`
+              }
+            ]
+          };
+          
+        } catch (error) {
+          throw new Error(`Failed to append to CSV: ${error.message}`);
+        }
+      }
+
+      case "github-token-check": {
+        console.error('🔍 Checking GitHub token permissions...');
+        
+        try {
+          // Get viewer (current user) info
+          const viewerQuery = `query {
+            viewer {
+              login
+              name
+              organizations(first: 50) {
+                nodes {
+                  login
+                  name
+                }
+              }
+            }
+          }`;
+          
+          const { data } = await octokit.graphql(viewerQuery);
+          
+          if (!data || !data.viewer) {
+            throw new Error('GraphQL query returned no data - token may be invalid');
+          }
+          
+          let result = `🔐 **GitHub Token Information**\n\n`;
+          result += `**Authenticated as:** ${data.viewer.login} (${data.viewer.name || 'No name'})\n\n`;
+          
+          if (data.viewer.organizations.nodes.length > 0) {
+            result += `**Organizations you can access:**\n`;
+            data.viewer.organizations.nodes.forEach(org => {
+              result += `- ${org.login} (${org.name})\n`;
+            });
+          } else {
+            result += `⚠️ **No organizations found** - this might indicate missing \`read:org\` scope\n`;
+          }
+          
+          return {
+            content: [
+              {
+                type: "text",
+                text: result
+              }
+            ]
+          };
+        } catch (error) {
+          console.error('Token check error details:', error);
+          throw new Error(`Failed to check token: ${error.message}\n\nPlease verify:\n1. GH_TOKEN is set in VS Code settings\n2. Token is valid and not expired\n3. Token has correct scopes`);
         }
       }
 

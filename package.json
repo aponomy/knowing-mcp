@@ -12,6 +12,7 @@
     "dev": "node --watch src/server.mjs",
     "test": "node test/test-connection.mjs",
     "test:browser": "node test/test-browser.mjs",
+    "test:csv": "node test/test-csv.mjs",
     "prepublishOnly": "npm test",
     "postinstall": "playwright install chrome"
   },

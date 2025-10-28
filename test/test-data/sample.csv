@@ -1,0 +1,6 @@
+query,source,position,url,domain,date
+vad är diabetes,Google AI Overview,1,https://www.1177.se/diabetes,www.1177.se,2025-10-26
+diabetes symptoms,Featured Snippet,1,https://www.mayoclinic.org/diseases-conditions/diabetes/symptoms-causes/syc-20371444,www.mayoclinic.org,2025-10-26
+type 2 diabetes,People Also Ask,3,https://www.cdc.gov/diabetes/basics/type2.html,www.cdc.gov,2025-10-26
+"query with, comma","Source ""with quotes""",5,https://example.com/path?param=value&other=test,example.com,2025-10-26
+test query,,0,https://example.com,,2025-10-26

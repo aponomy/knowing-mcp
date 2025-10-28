@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- New `append-csv-row` tool for incremental CSV data collection
+  - Auto-creates directories and files
+  - Proper CSV escaping (commas, quotes, newlines)
+  - Supports strings, numbers, and null values
+  - Perfect for browser automation workflows
+- CSV tools documentation (`docs/CSV-TOOLS.md`)
+- CSV workflow example for citation analysis (`docs/CSV-WORKFLOW-EXAMPLE.md`)
+- Test suite for CSV functionality (`test/test-csv.mjs`)
+- `npm run test:csv` script
+
 ## [1.0.0] - 2025-01-11
 
 ### Added
