@@ -64,6 +64,21 @@ See [../README.md](../README.md#-available-tools) for:
 See [CSV-TOOLS.md](CSV-TOOLS.md) for:
 - `append-csv-row` - Append rows to CSV files for incremental data collection
 
+### Document Processing Tools
+See [PDF-TOOLS.md](PDF-TOOLS.md) for:
+- `read-pdf` - Read PDF files and extract text or markdown content
+- `read-docx` - Read Microsoft Word (.docx) files and extract text or markdown content
+- `make-pdf` - Convert Markdown files to PDF format (uses pandoc or weasyprint)
+- Read tools support saving large documents to files with `outputPath` parameter
+
+### Markdown Editing Tools
+See [MARKDOWN-TOOLS.md](MARKDOWN-TOOLS.md) for:
+- `md-stat` - Get file statistics and structure (sections, code blocks, tables, front matter)
+- `md-validate` - Validate markdown syntax and preview formatting changes
+- `md-apply` - Apply deterministic, structure-aware edits with atomic transactions
+- Features: Section-based editing, dry-run mode, precondition checks, and safe defaults
+- Examples: [MARKDOWN-EXAMPLES.md](MARKDOWN-EXAMPLES.md)
+
 ### Browser Automation Tools (17 tools)
 See [BROWSER-AUTOMATION.md](BROWSER-AUTOMATION.md) for complete reference:
 
@@ -98,6 +113,10 @@ See [BROWSER-AUTOMATION.md](BROWSER-AUTOMATION.md) for complete reference:
 ### "I want to collect data from websites"
 1. [CSV-TOOLS.md](CSV-TOOLS.md) - CSV append tool documentation
 2. [BROWSER-EXAMPLES.md](BROWSER-EXAMPLES.md) - Browser automation examples
+
+### "I want to extract text from PDFs"
+1. [PDF-TOOLS.md](PDF-TOOLS.md) - PDF reader documentation
+2. [CSV-TOOLS.md](CSV-TOOLS.md) - Save extracted data to CSV
 3. [BROWSER-AUTOMATION.md](BROWSER-AUTOMATION.md) - Browser tool reference
 
 ### "I'm having issues"

@@ -1,0 +1,26 @@
+Sample Document
+================
+
+This is a sample text file used for testing the PDF reader.
+
+In a real scenario, this would be a PDF file with the following content:
+
+Page 1
+------
+Introduction to the document.
+This section contains important information.
+
+Page 2
+------
+Main content and analysis.
+Additional details and data.
+
+Page 3
+------
+Conclusion and summary.
+Final remarks and recommendations.
+
+Metadata:
+- Title: Sample Test Document
+- Author: Test Suite
+- Created: 2024-10-31

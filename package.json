@@ -13,6 +13,9 @@
     "test": "node test/test-connection.mjs",
     "test:browser": "node test/test-browser.mjs",
     "test:csv": "node test/test-csv.mjs",
+    "test:pdf": "node test/test-pdf.mjs",
+    "test:pdf-gen": "node test/test-pdf-generation.mjs",
+    "test:markdown": "node test/test-markdown.mjs",
     "prepublishOnly": "npm test",
     "postinstall": "playwright install chrome"
   },
@@ -26,7 +29,9 @@
     "vscode",
     "automation",
     "playwright",
-    "browser-automation"
+    "browser-automation",
+    "pdf",
+    "document-processing"
   ],
   "author": "Gullers Grupp",
   "license": "MIT",
@@ -51,7 +56,9 @@
   },
   "files": [
     "src/",
+    "scripts/",
     "test/",
+    "docs/",
     "README.md",
     "QUICK-START.md",
     "VSCODE-SETUP.md",

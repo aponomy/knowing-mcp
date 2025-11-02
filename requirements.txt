@@ -1,0 +1,19 @@
+# Python dependencies for knowing-mcp
+
+# Core dependencies
+markdown-it-py>=3.0.0      # Markdown parsing
+pyyaml>=6.0                # YAML front matter
+
+# Optional dependencies for formatting
+mdformat>=0.7.17           # Markdown formatter
+mdformat-gfm>=0.3.6        # GitHub Flavored Markdown support
+
+# Document processing (for read-pdf, read-docx, and make-pdf tools)
+pypdf>=3.0.0               # PDF reading
+python-docx>=1.0.0         # DOCX reading
+
+# Optional: PDF generation (make-pdf tool)
+# The make-pdf tool can work with just pandoc (creates HTML)
+# Or install these for direct PDF generation:
+# markdown>=3.5.0          # Markdown to HTML conversion
+# weasyprint>=60.0         # HTML to PDF conversion (requires system libraries)
