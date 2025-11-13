@@ -188,6 +188,13 @@ def make_pdf_with_pandoc(md_path, pdf_path, options=None):
                     table {{
                         line-height: {line_height} !important;
                     }}
+                    
+                    img {{
+                        max-width: 100% !important;
+                        height: auto !important;
+                        display: block !important;
+                        margin: 1em auto !important;
+                    }}
                 </style>
                 """
                 
@@ -198,7 +205,10 @@ def make_pdf_with_pandoc(md_path, pdf_path, options=None):
                     # If no </head>, add it at the beginning
                     html_content = custom_css + html_content
                 
-                weasyprint.HTML(string=html_content).write_pdf(str(pdf_path))
+                # Convert HTML to PDF with base_url for relative image paths
+                # Add trailing slash to ensure it's treated as a directory
+                base_url = md_path.parent.as_uri() + '/'
+                weasyprint.HTML(string=html_content, base_url=base_url).write_pdf(str(pdf_path))
                 
                 # Clean up temporary HTML file
                 html_path.unlink()
@@ -420,6 +430,13 @@ def make_pdf_with_weasyprint(md_path, pdf_path, options=None):
             a:hover {{
                 text-decoration: underline;
             }}
+            
+            img {{
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 1em auto;
+            }}
         </style>
         """
         
@@ -436,8 +453,11 @@ def make_pdf_with_weasyprint(md_path, pdf_path, options=None):
         </html>
         """
         
-        # Convert HTML to PDF
-        weasyprint.HTML(string=full_html).write_pdf(str(pdf_path))
+        # Convert HTML to PDF with base_url for relative image paths
+        # Use the markdown file's directory as base URL so relative paths work
+        # Add trailing slash to ensure it's treated as a directory
+        base_url = md_path.parent.as_uri() + '/'
+        weasyprint.HTML(string=full_html, base_url=base_url).write_pdf(str(pdf_path))
         
         return {
             "success": True,

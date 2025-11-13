@@ -290,6 +290,28 @@ const TOOLS = [
     }
   },
   {
+    name: "deep-research",
+    description: "Conduct comprehensive web research using Azure Deep Research (o3 model) with Bing grounding. Returns a detailed, cited report based on current web information. Use for: market research, competitive analysis, technical landscape reviews, fact-checking, gathering recent information. IMPORTANT: This performs actual web searches - use when you need current, real-world data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        prompt: { 
+          type: "string", 
+          description: "Research question or topic. Be specific about what you want to learn. Example: 'What are the latest best practices for React Server Components in 2025?'"
+        },
+        outputPath: {
+          type: "string",
+          description: "Absolute path to save the markdown report (e.g., /Users/username/workspace/research-report.md). The file will be created with the full research report including citations."
+        },
+        max_words: {
+          type: "number",
+          description: "Maximum words for the research report (default: 800, max: 2000)"
+        }
+      },
+      required: ["prompt", "outputPath"]
+    }
+  },
+  {
     name: "ask-architect",
     description: "Answer architecture questions using a workspace's architecture document (.vscode/docs/ARCHITECTURE.md). Can propose updates when gaps are found.",
     inputSchema: {
@@ -976,6 +998,100 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case "deep-research": {
+        const { prompt, outputPath, max_words = 800 } = args;
+        
+        // Validate required parameters
+        if (!outputPath) {
+          throw new Error('outputPath parameter is required. Example: outputPath="/Users/username/workspace/research-report.md"');
+        }
+        
+        // Validate max_words
+        const maxWordsLimit = 2000;
+        const effectiveMaxWords = Math.min(max_words, maxWordsLimit);
+        
+        console.error(`🔍 Running Deep Research on: ${prompt.substring(0, 100)}...`);
+        console.error(`📊 Max words: ${effectiveMaxWords}`);
+        console.error(`💾 Output path: ${outputPath}`);
+        
+        // Get environment variables
+        const PROJECT_ENDPOINT = getEnv("AZURE_PROJECT_ENDPOINT");
+        const BING_CONNECTION_ID = getEnv("AZURE_BING_CONNECTION_ID");
+        const DEEP_RESEARCH_DEPLOYMENT = process.env.AZURE_O3_DEEP_RESEARCH_DEPLOYMENT || "o3-deep-research";
+        
+        // Path to Python script
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        const scriptPath = join(__dirname, '..', 'scripts', 'deep-research.py');
+        
+        // Run Python script with spawn to capture output
+        const { spawn } = await import('child_process');
+        
+        return new Promise((resolve, reject) => {
+          const pythonProcess = spawn('python3', [
+            scriptPath,
+            prompt,
+            outputPath,
+            effectiveMaxWords.toString()
+          ], {
+            env: {
+              ...process.env,
+              AZURE_PROJECT_ENDPOINT: PROJECT_ENDPOINT,
+              AZURE_BING_CONNECTION_ID: BING_CONNECTION_ID,
+              AZURE_O3_DEEP_RESEARCH_DEPLOYMENT: DEEP_RESEARCH_DEPLOYMENT
+            }
+          });
+          
+          let stdout = '';
+          let stderr = '';
+          
+          pythonProcess.stdout.on('data', (data) => {
+            stdout += data.toString();
+          });
+          
+          pythonProcess.stderr.on('data', (data) => {
+            stderr += data.toString();
+            console.error('🐍 Python:', data.toString().trim());
+          });
+          
+          pythonProcess.on('close', (code) => {
+            if (code !== 0) {
+              console.error('❌ Deep Research failed:', stderr);
+              reject(new Error(`Deep Research script failed with code ${code}: ${stderr}`));
+              return;
+            }
+            
+            try {
+              const result = JSON.parse(stdout);
+              
+              if (result.error) {
+                reject(new Error(`Deep Research error: ${result.error}`));
+                return;
+              }
+              
+              const { report, metadata, output_file } = result;
+              const citationCount = metadata?.citation_count || 0;
+              const model = metadata?.deep_research_model || DEEP_RESEARCH_DEPLOYMENT;
+              
+              console.error(`✅ Deep Research complete (${citationCount} sources)`);
+              console.error(`📄 Report saved to: ${output_file}`);
+              
+              resolve({
+                content: [
+                  {
+                    type: "text",
+                    text: `🔍 **Deep Research Report Saved**\n\n✅ Report saved to: \`${output_file}\`\n\n**Summary:**\n- Sources cited: ${citationCount}\n- Model: ${model}\n- Word count: ~${effectiveMaxWords} max\n\n**Preview:**\n\n${report.substring(0, 500)}...\n\n---\n*Full report available at: ${output_file}*`
+                  }
+                ]
+              });
+            } catch (parseError) {
+              console.error('❌ Failed to parse Deep Research output:', stdout);
+              reject(new Error(`Failed to parse Deep Research output: ${parseError.message}`));
+            }
+          });
+        });
+      }
+
       case "ask-architect": {
         const { question, workspacePath: customWorkspacePath } = args;
         
@@ -1617,9 +1733,6 @@ Analyze the architecture document and answer the question. Cite specific section
           
           if (toc) {
             responseText += `**Table of Contents:** Yes\n`;
-          }
-          if (engine) {
-            responseText += `**PDF Engine:** ${engine}\n`;
           }
           
           responseText += `\n✅ PDF file has been created and is ready to use.`;
